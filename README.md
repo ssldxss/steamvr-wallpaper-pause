@@ -1,16 +1,17 @@
 # SteamVR Wallpaper Pause
 
-Automatically pauses Wallpaper Engine when SteamVR is running, and resumes it when SteamVR exits. Lives in your system tray, starts with Windows — install once and forget about it.
+Automatically stops or pauses Wallpaper Engine when SteamVR is running, and resumes it when SteamVR exits. Lives in your system tray, starts with Windows — install once and forget about it.
 
 ## Features
 
 - **System tray icon** with status indication (green = monitoring, orange = VR active)
+- **Configurable action**: Choose between "Stop" (`-control stop`) or "Pause" (`-control pause`) when SteamVR starts
 - **Auto-start with Windows**, minimized to tray
 - **Automatic detection** of SteamVR via process monitoring
-- **Manual override** via tray menu (pause/resume Wallpaper Engine on demand)
-- **Settings window** for configuring polling interval, Wallpaper Engine path, and auto-start
+- **Manual override** via tray menu (stop/resume Wallpaper Engine on demand)
+- **Settings window** for configuring polling interval, Wallpaper Engine path, action mode, and auto-start
 - **Windows installer** with Start Menu shortcuts and uninstaller
-- **Toast notifications** when wallpaper is paused/resumed
+- **Toast notifications** when wallpaper is stopped/resumed
 
 ## Requirements (Development)
 
@@ -51,7 +52,8 @@ Configuration is stored in `%APPDATA%\SteamVRWallpaperPause\config.json`:
   "polling_interval": 5,
   "wallpaper_engine_path": "auto",
   "auto_start": true,
-  "verbose": false
+  "verbose": false,
+  "action_on_vr_start": "stop"
 }
 ```
 
@@ -59,11 +61,12 @@ Configuration is stored in `%APPDATA%\SteamVRWallpaperPause\config.json`:
 - **wallpaper_engine_path**: Path to `wallpaper32.exe`, or `"auto"` to auto-detect (default: "auto")
 - **auto_start**: Whether to start with Windows (default: true)
 - **verbose**: Enable verbose console logging (default: false)
+- **action_on_vr_start**: `"stop"` or `"pause"` — what to do when SteamVR starts (default: `"stop"`)
 
 ## How It Works
 
 1. Every N seconds, checks if `vrserver.exe` (SteamVR) is running
-2. When SteamVR starts → pauses Wallpaper Engine via `wallpaper32.exe -control pause`
+2. When SteamVR starts → stops or pauses Wallpaper Engine via `wallpaper32.exe -control stop/pause`
 3. When SteamVR stops → resumes Wallpaper Engine via `wallpaper32.exe -control play`
 4. Only acts on state transitions — no repeated commands while SteamVR stays running/stopped
 

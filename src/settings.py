@@ -1,10 +1,13 @@
 """Settings dialog window using tkinter."""
 
 import tkinter as tk
+import webbrowser
 from tkinter import filedialog, messagebox, ttk
 
 from config import Config
 from autostart import enable_autostart, disable_autostart, is_autostart_enabled
+
+GITHUB_URL = "https://github.com/ssldxss/steamvr-wallpaper-pause"
 
 
 class SettingsWindow:
@@ -23,6 +26,7 @@ class SettingsWindow:
         self._interval_var: tk.IntVar | None = None
         self._path_var: tk.StringVar | None = None
         self._autostart_var: tk.BooleanVar | None = None
+        self._action_var: tk.StringVar | None = None
 
     def show(self) -> None:
         """Show the settings window (non-blocking)."""
@@ -37,7 +41,7 @@ class SettingsWindow:
         self._window.protocol("WM_DELETE_WINDOW", self._on_cancel)
 
         # Icon — use default tkinter behavior, no custom icon needed
-        self._window.geometry("420x220")
+        self._window.geometry("500x320")
 
         # Style
         self._window.configure(bg="#f0f0f0")
@@ -91,6 +95,21 @@ class SettingsWindow:
             font=("Segoe UI", 8),
         ).grid(row=2, column=1, sticky=tk.W, pady=(0, 12), padx=(8, 0))
 
+        # --- Action on VR start ---
+        ttk.Label(main_frame, text="When SteamVR starts:").grid(
+            row=3, column=0, sticky=tk.W, pady=(0, 8)
+        )
+        action_label = "Pause" if self._config.action_on_vr_start == "pause" else "Stop"
+        self._action_var = tk.StringVar(value=action_label)
+        action_combo = ttk.Combobox(
+            main_frame,
+            textvariable=self._action_var,
+            values=["Pause", "Stop"],
+            state="readonly",
+            width=10,
+        )
+        action_combo.grid(row=3, column=1, sticky=tk.W, pady=(0, 8), padx=(8, 0))
+
         # --- Auto-start ---
         self._autostart_var = tk.BooleanVar(value=is_autostart_enabled())
         autostart_check = ttk.Checkbutton(
@@ -98,11 +117,23 @@ class SettingsWindow:
             text="Start with Windows",
             variable=self._autostart_var,
         )
-        autostart_check.grid(row=3, column=0, columnspan=2, sticky=tk.W, pady=(4, 12))
+        autostart_check.grid(row=4, column=0, columnspan=2, sticky=tk.W, pady=(4, 12))
+
+        # --- GitHub link ---
+        link_label = tk.Label(
+            main_frame,
+            text="About",
+            foreground="#0066cc",
+            cursor="hand2",
+            font=("Segoe UI", 9, "underline"),
+            bg="#f0f0f0",
+        )
+        link_label.grid(row=5, column=0, columnspan=2, sticky=tk.W, pady=(0, 12))
+        link_label.bind("<Button-1>", self._open_github)
 
         # --- Buttons ---
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=4, column=0, columnspan=2, sticky=tk.E, pady=(8, 0))
+        button_frame.grid(row=6, column=0, columnspan=2, sticky=tk.E, pady=(8, 0))
 
         cancel_btn = ttk.Button(button_frame, text="Cancel", command=self._on_cancel)
         cancel_btn.pack(side=tk.RIGHT, padx=(8, 0))
@@ -113,6 +144,10 @@ class SettingsWindow:
         # Center the window on screen
         self._window.update_idletasks()
         self._window.grab_set()
+
+    def _open_github(self, event: tk.Event) -> None:
+        """Open the GitHub repository in the default browser."""
+        webbrowser.open(GITHUB_URL)
 
     def _browse_path(self) -> None:
         """Open file browser to select wallpaper32.exe."""
@@ -156,6 +191,10 @@ class SettingsWindow:
                 enable_autostart()
             else:
                 disable_autostart()
+
+        if self._action_var is not None:
+            action = self._action_var.get().lower()
+            self._config.action_on_vr_start = action
 
         self._config.save()
 

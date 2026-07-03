@@ -99,7 +99,7 @@ def _parse_library_folders(vdf_path: str) -> list[str]:
 
 
 def pause_wallpaper(path: str) -> bool:
-    """Pause Wallpaper Engine.
+    """Pause Wallpaper Engine via -control pause.
 
     Args:
         path: Full path to wallpaper32.exe.
@@ -111,7 +111,7 @@ def pause_wallpaper(path: str) -> bool:
 
 
 def resume_wallpaper(path: str) -> bool:
-    """Resume Wallpaper Engine.
+    """Resume Wallpaper Engine via -control play.
 
     Args:
         path: Full path to wallpaper32.exe.
@@ -120,6 +120,18 @@ def resume_wallpaper(path: str) -> bool:
         True if the command succeeded, False otherwise.
     """
     return _run_control_command(path, "play")
+
+
+def stop_wallpaper(path: str) -> bool:
+    """Stop Wallpaper Engine via -control stop.
+
+    Args:
+        path: Full path to wallpaper32.exe.
+
+    Returns:
+        True if the command succeeded, False otherwise.
+    """
+    return _run_control_command(path, "stop")
 
 
 def _run_control_command(exe_path: str, action: str) -> bool:

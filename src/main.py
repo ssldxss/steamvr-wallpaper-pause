@@ -20,7 +20,7 @@ try:
     # Try absolute imports (scripts run directly)
     from config import Config  # noqa: E402
     from detector import is_steamvr_running  # noqa: E402
-    from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper  # noqa: E402
+    from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper  # noqa: E402
     from autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
     from tray import TrayApp  # noqa: E402
     from settings import SettingsWindow  # noqa: E402
@@ -28,7 +28,7 @@ except Exception:
     # Fallback to relative imports when package is executed as a module
     from .config import Config  # noqa: E402
     from .detector import is_steamvr_running  # noqa: E402
-    from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper  # noqa: E402
+    from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper  # noqa: E402
     from .autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
     from .tray import TrayApp  # noqa: E402
     from .settings import SettingsWindow  # noqa: E402
@@ -149,20 +149,24 @@ class Monitor:
                 vr_now = is_steamvr_running()
 
                 if vr_now and not self._steamvr_running:
-                    logger.info("SteamVR started — pausing Wallpaper Engine")
+                    action = self._config.action_on_vr_start
+                    logger.info(f"SteamVR started — action: {action}")
                     self._steamvr_running = True
                     if self._tray_app:
                         self._tray_app.vr_running = True
 
                     if self._wallpaper_path:
-                        success = pause_wallpaper(self._wallpaper_path)
+                        if action == "stop":
+                            success = stop_wallpaper(self._wallpaper_path)
+                        else:
+                            success = pause_wallpaper(self._wallpaper_path)
                         if success:
                             self._paused_by_us = True
                             if self._tray_app:
                                 self._tray_app.wallpaper_paused = True
                                 self._tray_app.notify_pause()
                         elif self._tray_app:
-                            self._tray_app.notify_error("Failed to pause Wallpaper Engine")
+                            self._tray_app.notify_error(f"Failed to {action} Wallpaper Engine")
                     else:
                         logger.warning("No wallpaper engine path configured")
 
@@ -179,8 +183,12 @@ class Monitor:
                             if self._tray_app:
                                 self._tray_app.wallpaper_paused = False
                                 self._tray_app.notify_resume()
-                        elif self._tray_app:
-                            self._tray_app.notify_error("Failed to resume Wallpaper Engine")
+                        else:
+                            # In stop mode, process may have exited — resume fails silently
+                            logger.debug("Resume failed (process may have exited)")
+                            self._paused_by_us = False
+                            if self._tray_app:
+                                self._tray_app.wallpaper_paused = False
                     elif self._tray_app:
                         self._tray_app.wallpaper_paused = False
 

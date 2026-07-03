@@ -11,11 +11,14 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 APP_NAME = "SteamVRWallpaperPause"
+_VALID_ACTIONS = ("pause", "stop")
+
 DEFAULT_CONFIG: dict[str, str | int | bool] = {
     "polling_interval": 5,
     "wallpaper_engine_path": "auto",
     "auto_start": True,
     "verbose": False,
+    "action_on_vr_start": "stop",
 }
 
 
@@ -108,6 +111,17 @@ class Config:
     @verbose.setter
     def verbose(self, value: bool) -> None:
         self._data["verbose"] = bool(value)
+
+    @property
+    def action_on_vr_start(self) -> str:
+        val = self._data.get("action_on_vr_start", "pause")
+        return val if val in _VALID_ACTIONS else "pause"
+
+    @action_on_vr_start.setter
+    def action_on_vr_start(self, value: str) -> None:
+        if value not in _VALID_ACTIONS:
+            raise ValueError(f"action_on_vr_start must be one of {_VALID_ACTIONS}")
+        self._data["action_on_vr_start"] = value
 
     def to_dict(self) -> dict:
         return dict(self._data)
