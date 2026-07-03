@@ -1,51 +1,53 @@
-# SteamVR Wallpaper Pause
+# SteamVR 壁纸暂停工具
 
-Automatically stops or pauses Wallpaper Engine when SteamVR is running, and resumes it when SteamVR exits. Lives in your system tray, starts with Windows — install once and forget about it.
+当 SteamVR 运行时自动停止或暂停 Wallpaper Engine，SteamVR 关闭后自动恢复。常驻系统托盘，开机自启 — 安装一次即可忘记它的存在。
 
-## Features
+[English](README_EN.md)
 
-- **System tray icon** with status indication (green = monitoring, orange = VR active)
-- **Configurable action**: Choose between "Stop" (`-control stop`) or "Pause" (`-control pause`) when SteamVR starts
-- **Auto-start with Windows**, minimized to tray
-- **Automatic detection** of SteamVR via process monitoring
-- **Manual override** via tray menu (stop/resume Wallpaper Engine on demand)
-- **Settings window** for configuring polling interval, Wallpaper Engine path, action mode, and auto-start
-- **Windows installer** with Start Menu shortcuts and uninstaller
-- **Toast notifications** when wallpaper is stopped/resumed
+## 功能
 
-## Requirements (Development)
+- **系统托盘图标** 带状态指示（绿色 = 监控中，橙色 = VR 运行中）
+- **可配置动作**：SteamVR 启动时"停止"（`-control stop`）或"暂停"（`-control pause`）
+- **开机自启**，最小化到系统托盘
+- **自动检测** SteamVR 运行状态（进程监控）
+- **手动控制**：托盘菜单可随时停止/恢复壁纸引擎
+- **设置窗口**：配置轮询间隔、壁纸引擎路径、动作模式、开机自启
+- **Windows 安装程序**：开始菜单快捷方式、卸载程序
+- **气泡通知**：壁纸停止/恢复时弹出提示
+
+## 开发环境要求
 
 - Python 3.10+
-- Dependencies: `pystray`, `Pillow`, `psutil` (see `requirements.txt`)
-- PyInstaller (for building the exe)
-- Inno Setup 6 (for building the installer)
+- 依赖：`pystray`、`Pillow`、`psutil`（见 `requirements.txt`）
+- PyInstaller（打包 exe）
+- Inno Setup 6（构建安装程序）
 
-## Quick Start (Development)
+## 快速开始（开发）
 
 ```bash
-# Install dependencies
+# 安装依赖
 pip install -r requirements.txt
 
-# Run in console mode (for debugging)
+# 控制台模式运行（调试用）
 python src/main.py --console --verbose
 
-# Run normally (tray only)
+# 正常模式运行（仅托盘）
 python src/main.py
 ```
 
-## Building the Installer
+## 构建安装程序
 
 ```bash
-# 1. Build the standalone exe with PyInstaller
+# 1. 使用 PyInstaller 编译独立 exe
 build.bat
 
-# 2. Open installer/setup.iss in Inno Setup Compiler and compile
-#    Output: installer/Output/SteamVRWallpaperPause-Setup.exe
+# 2. 用 Inno Setup Compiler 打开 installer/setup.iss 并编译
+#    输出：installer/Output/SteamVRWallpaperPause-Setup.exe
 ```
 
-## Configuration
+## 配置
 
-Configuration is stored in `%APPDATA%\SteamVRWallpaperPause\config.json`:
+配置文件位于 `%APPDATA%\SteamVRWallpaperPause\config.json`：
 
 ```json
 {
@@ -57,19 +59,19 @@ Configuration is stored in `%APPDATA%\SteamVRWallpaperPause\config.json`:
 }
 ```
 
-- **polling_interval**: Seconds between SteamVR process checks (default: 5)
-- **wallpaper_engine_path**: Path to `wallpaper32.exe`, or `"auto"` to auto-detect (default: "auto")
-- **auto_start**: Whether to start with Windows (default: true)
-- **verbose**: Enable verbose console logging (default: false)
-- **action_on_vr_start**: `"stop"` or `"pause"` — what to do when SteamVR starts (default: `"stop"`)
+- **polling_interval**：检查 SteamVR 进程的间隔秒数（默认：5）
+- **wallpaper_engine_path**：`wallpaper32.exe` 路径，设为 `"auto"` 自动检测（默认："auto"）
+- **auto_start**：是否开机自启（默认：true）
+- **verbose**：启用详细日志（默认：false）
+- **action_on_vr_start**：`"stop"` 或 `"pause"` — SteamVR 启动时的动作（默认："stop"）
 
-## How It Works
+## 工作原理
 
-1. Every N seconds, checks if `vrserver.exe` (SteamVR) is running
-2. When SteamVR starts → stops or pauses Wallpaper Engine via `wallpaper32.exe -control stop/pause`
-3. When SteamVR stops → resumes Wallpaper Engine via `wallpaper32.exe -control play`
-4. Only acts on state transitions — no repeated commands while SteamVR stays running/stopped
+1. 每隔 N 秒检查 `vrserver.exe`（SteamVR）是否在运行
+2. SteamVR 启动 → 通过 `wallpaper32.exe -control stop/pause` 停止或暂停壁纸
+3. SteamVR 退出 → 通过 `wallpaper32.exe -control play` 恢复壁纸
+4. 仅在状态变化时执行操作，运行期间不重复发送命令
 
-## License
+## 许可证
 
 MIT
