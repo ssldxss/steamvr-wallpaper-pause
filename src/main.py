@@ -16,12 +16,22 @@ _SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 if _SRC_DIR not in sys.path:
     sys.path.insert(0, _SRC_DIR)
 
-from config import Config  # noqa: E402
-from detector import is_steamvr_running  # noqa: E402
-from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper  # noqa: E402
-from autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
-from tray import TrayApp  # noqa: E402
-from settings import SettingsWindow  # noqa: E402
+try:
+    # Try absolute imports (scripts run directly)
+    from config import Config  # noqa: E402
+    from detector import is_steamvr_running  # noqa: E402
+    from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper  # noqa: E402
+    from autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
+    from tray import TrayApp  # noqa: E402
+    from settings import SettingsWindow  # noqa: E402
+except Exception:
+    # Fallback to relative imports when package is executed as a module
+    from .config import Config  # noqa: E402
+    from .detector import is_steamvr_running  # noqa: E402
+    from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper  # noqa: E402
+    from .autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
+    from .tray import TrayApp  # noqa: E402
+    from .settings import SettingsWindow  # noqa: E402
 
 import threading  # noqa: E402
 import time  # noqa: E402

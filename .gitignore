@@ -21,3 +21,4 @@ Thumbs.db
 
 # App data (local testing)
 appdata/
+installer/Output/

@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['src/main.py'],
-    pathex=[],
+    pathex=['src'],
     binaries=[],
     datas=[],
     hiddenimports=[
@@ -13,9 +13,12 @@ a = Analysis(
         'PIL.ImageDraw',
         'tkinter',
         'psutil',
-        'winreg',
-        'logging',
-        'threading',
+        'config',
+        'detector',
+        'controller',
+        'autostart',
+        'tray',
+        'settings',
     ],
     hookspath=[],
     hooksconfig={},
