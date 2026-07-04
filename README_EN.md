@@ -8,7 +8,7 @@ Automatically stops or pauses Wallpaper Engine when SteamVR is running, and resu
 
 ## Quick Start
 
-[Installer](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.0/SteamVRWallpaperPause1.1.0-Setup.exe)
+[Installer](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.1/SteamVRWallpaperPause-Setup.exe)
 
 ## Zako
 
