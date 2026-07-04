@@ -1,8 +1,18 @@
 # SteamVR Wallpaper Pause
 
+[中文](README.md)
+
+A small utility for VRChat and other SteamVR players.
+
 Automatically stops or pauses Wallpaper Engine when SteamVR is running, and resumes it when SteamVR exits. Lives in your system tray, starts with Windows — install once and forget about it.
 
-[中文版](README.md)
+## Quick Start
+
+[Installer](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.0/SteamVRWallpaperPause1.1.0-Setup.exe)
+
+## Zako
+
+<img width="512" height="512" alt="53EA5472A0EF239DD1011DE851DD1100" src="https://github.com/user-attachments/assets/d11caf12-852e-4740-8d8d-f9817c6e7c1c" />
 
 ## Features
 
@@ -10,8 +20,8 @@ Automatically stops or pauses Wallpaper Engine when SteamVR is running, and resu
 - **Configurable action**: Choose between "Stop" (`-control stop`) or "Pause" (`-control pause`) when SteamVR starts
 - **Auto-start with Windows**, minimized to tray
 - **Automatic detection** of SteamVR via process monitoring
-- **Manual override** via tray menu (stop/resume Wallpaper Engine on demand)
-- **Settings window** for configuring polling interval, Wallpaper Engine path, action mode, and auto-start
+- **Manual control**: Stop/resume Wallpaper Engine from the tray menu
+- **Settings window**: Configure polling interval, Wallpaper Engine path, action mode, and auto-start
 - **Windows installer** with Start Menu shortcuts and uninstaller
 - **Toast notifications** when wallpaper is stopped/resumed
 
@@ -63,7 +73,7 @@ Configuration is stored in `%APPDATA%\SteamVRWallpaperPause\config.json`:
 - **wallpaper_engine_path**: Path to `wallpaper32.exe`, or `"auto"` to auto-detect (default: "auto")
 - **auto_start**: Whether to start with Windows (default: true)
 - **verbose**: Enable verbose console logging (default: false)
-- **action_on_vr_start**: `"stop"` or `"pause"` — what to do when SteamVR starts (default: `"stop"`)
+- **action_on_vr_start**: `"stop"` or `"pause"` — what to do when SteamVR starts (default: "stop")
 
 ## How It Works
 
