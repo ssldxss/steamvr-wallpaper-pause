@@ -77,7 +77,7 @@ end;
 
 procedure WriteInitialConfig;
 var
-  ConfigDir, ConfigPath, AppDataDir: string;
+  ConfigDir, ConfigPath, AppDataDir, LangCode, AutoStartVal: string;
   ConfigJSON: string;
 begin
   AppDataDir := GetEnv('APPDATA');
@@ -88,23 +88,23 @@ begin
     CreateDir(ConfigDir);
 
   if LanguagePage.Values[1] then
-    ConfigJSON := '{' + #13#10 +
-      '  "polling_interval": 5,' + #13#10 +
-      '  "wallpaper_engine_path": "auto",' + #13#10 +
-      '  "auto_start": true,' + #13#10 +
-      '  "verbose": false,' + #13#10 +
-      '  "action_on_vr_start": "stop",' + #13#10 +
-      '  "language": "en"' + #13#10 +
-      '}'
+    LangCode := 'en'
   else
-    ConfigJSON := '{' + #13#10 +
-      '  "polling_interval": 5,' + #13#10 +
-      '  "wallpaper_engine_path": "auto",' + #13#10 +
-      '  "auto_start": true,' + #13#10 +
-      '  "verbose": false,' + #13#10 +
-      '  "action_on_vr_start": "stop",' + #13#10 +
-      '  "language": "zh"' + #13#10 +
-      '}';
+    LangCode := 'zh';
+
+  if IsTaskSelected('autostart') then
+    AutoStartVal := 'true'
+  else
+    AutoStartVal := 'false';
+
+  ConfigJSON := '{' + #13#10 +
+    '  "polling_interval": 5,' + #13#10 +
+    '  "wallpaper_engine_path": "auto",' + #13#10 +
+    '  "auto_start": ' + AutoStartVal + ',' + #13#10 +
+    '  "verbose": false,' + #13#10 +
+    '  "action_on_vr_start": "stop",' + #13#10 +
+    '  "language": "' + LangCode + '"' + #13#10 +
+    '}';
 
   SaveStringToFile(ConfigPath, ConfigJSON, False);
 end;

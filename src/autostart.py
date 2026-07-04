@@ -8,7 +8,8 @@ import winreg
 logger = logging.getLogger(__name__)
 
 _RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
-_VALUE_NAME = "SteamVRWallpaperPause"
+_VALUE_NAME = "SteamVR Wallpaper Pause"  # must match installer's {#MyAppName}
+_LEGACY_VALUE_NAME = "SteamVRWallpaperPause"  # old name from v1.0.0 builds — removed on upgrade
 
 
 def _get_exe_path() -> str:
@@ -94,3 +95,27 @@ def is_autostart_enabled() -> bool:
             return False
     except OSError:
         return False
+
+
+def cleanup_legacy_autostart() -> None:
+    """Remove the legacy auto-start registry value from older builds.
+
+    Earlier versions wrote the Run key under 'SteamVRWallpaperPause' (no spaces),
+    while the installer wrote 'SteamVR Wallpaper Pause' (with spaces). This
+    difference caused two instances to launch at boot. Call once at startup
+    to delete the legacy entry if it still exists.
+    """
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, _RUN_KEY, 0,
+            winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE,
+        )
+        try:
+            winreg.QueryValueEx(key, _LEGACY_VALUE_NAME)
+            winreg.DeleteValue(key, _LEGACY_VALUE_NAME)
+            logger.info("Removed legacy auto-start registry entry (SteamVRWallpaperPause)")
+        except FileNotFoundError:
+            pass  # not present — nothing to clean up
+        winreg.CloseKey(key)
+    except OSError as e:
+        logger.warning(f"Could not check legacy auto-start entry: {e}")

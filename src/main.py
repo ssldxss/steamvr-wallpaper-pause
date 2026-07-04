@@ -21,7 +21,7 @@ try:
     from config import Config  # noqa: E402
     from detector import is_steamvr_running  # noqa: E402
     from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper  # noqa: E402
-    from autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
+    from autostart import enable_autostart, disable_autostart, is_autostart_enabled, cleanup_legacy_autostart  # noqa: E402
     from tray import TrayApp  # noqa: E402
     from settings import SettingsWindow  # noqa: E402
     from i18n import t, Lang  # noqa: E402
@@ -30,7 +30,7 @@ except Exception:
     from .config import Config  # noqa: E402
     from .detector import is_steamvr_running  # noqa: E402
     from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper  # noqa: E402
-    from .autostart import enable_autostart, disable_autostart, is_autostart_enabled  # noqa: E402
+    from .autostart import enable_autostart, disable_autostart, is_autostart_enabled, cleanup_legacy_autostart  # noqa: E402
     from .tray import TrayApp  # noqa: E402
     from .settings import SettingsWindow  # noqa: E402
     from .i18n import t, Lang  # noqa: E402
@@ -73,6 +73,9 @@ class Monitor:
         if not is_steamvr_running() and self._wallpaper_path:
             logger.info(t("log_startup_check", self._lang))
             resume_wallpaper(self._wallpaper_path)
+
+        # Remove legacy duplicate auto-start entry from older builds
+        cleanup_legacy_autostart()
 
         if self._config.auto_start != is_autostart_enabled():
             if self._config.auto_start:
