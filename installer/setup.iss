@@ -2,9 +2,9 @@
 ; Requires Inno Setup 6: https://jrsoftware.org/isinfo.php
 
 #define MyAppName "SteamVR Wallpaper Pause"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Open Source"
-#define MyAppURL "https://github.com/user/steamvr-wallpaper-pause"
+#define MyAppURL "https://github.com/ssldxss/steamvr-wallpaper-pause"
 #define MyAppExeName "SteamVRWallpaperPause.exe"
 
 [Setup]
@@ -50,12 +50,69 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilen
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent
 
 [Registry]
-; Auto-start with Windows (user-level — no admin required)
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "{#MyAppName}"; ValueData: """{app}\{#MyAppExeName}"" --minimized"; Tasks: autostart; Flags: uninsdeletevalue
 
 [UninstallRun]
-; Clean up auto-start if it was enabled outside the installer
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--remove-autostart"; Flags: runhidden
 
 [Code]
-// Optional: Add custom wizard page or validation here
+var
+  LanguagePage: TInputOptionWizardPage;
+
+procedure InitializeWizard;
+begin
+  LanguagePage := CreateInputOptionPage(
+    wpWelcome,
+    'Language / 语言',
+    'Please select your language / 请选择语言',
+    'The application will use this language as the default. You can change it later in Settings.' + #13#10 +
+    '应用程序将以此语言作为默认语言。您之后可以在设置中更改。',
+    True,
+    False
+  );
+  LanguagePage.Add('中文 (Chinese)');
+  LanguagePage.Add('English');
+  LanguagePage.Values[0] := True;
+end;
+
+procedure WriteInitialConfig;
+var
+  ConfigDir, ConfigPath, AppDataDir: string;
+  ConfigJSON: string;
+begin
+  AppDataDir := GetEnv('APPDATA');
+  ConfigDir := AppDataDir + '\SteamVRWallpaperPause';
+  ConfigPath := ConfigDir + '\config.json';
+
+  if not DirExists(ConfigDir) then
+    CreateDir(ConfigDir);
+
+  if LanguagePage.Values[1] then
+    ConfigJSON := '{' + #13#10 +
+      '  "polling_interval": 5,' + #13#10 +
+      '  "wallpaper_engine_path": "auto",' + #13#10 +
+      '  "auto_start": true,' + #13#10 +
+      '  "verbose": false,' + #13#10 +
+      '  "action_on_vr_start": "stop",' + #13#10 +
+      '  "language": "en"' + #13#10 +
+      '}'
+  else
+    ConfigJSON := '{' + #13#10 +
+      '  "polling_interval": 5,' + #13#10 +
+      '  "wallpaper_engine_path": "auto",' + #13#10 +
+      '  "auto_start": true,' + #13#10 +
+      '  "verbose": false,' + #13#10 +
+      '  "action_on_vr_start": "stop",' + #13#10 +
+      '  "language": "zh"' + #13#10 +
+      '}';
+
+  SaveStringToFile(ConfigPath, ConfigJSON, False);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    WriteInitialConfig;
+  end;
+end;

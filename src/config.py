@@ -12,12 +12,14 @@ logger = logging.getLogger(__name__)
 
 APP_NAME = "SteamVRWallpaperPause"
 _VALID_ACTIONS = ("pause", "stop")
+_VALID_LANGUAGES = ("zh", "en")
 
 DEFAULT_CONFIG: dict[str, str | int | bool] = {
     "polling_interval": 5,
     "wallpaper_engine_path": "auto",
     "auto_start": True,
     "verbose": False,
+    "language": "zh",
     "action_on_vr_start": "stop",
 }
 
@@ -122,6 +124,17 @@ class Config:
         if value not in _VALID_ACTIONS:
             raise ValueError(f"action_on_vr_start must be one of {_VALID_ACTIONS}")
         self._data["action_on_vr_start"] = value
+
+    @property
+    def language(self) -> str:
+        val = self._data.get("language", "zh")
+        return val if val in _VALID_LANGUAGES else "zh"
+
+    @language.setter
+    def language(self, value: str) -> None:
+        if value not in _VALID_LANGUAGES:
+            raise ValueError(f"language must be one of {_VALID_LANGUAGES}")
+        self._data["language"] = value
 
     def to_dict(self) -> dict:
         return dict(self._data)

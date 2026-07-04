@@ -19,6 +19,7 @@ a = Analysis(
         'autostart',
         'tray',
         'settings',
+        'i18n',
     ],
     hookspath=[],
     hooksconfig={},
