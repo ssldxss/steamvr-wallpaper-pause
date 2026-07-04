@@ -9,7 +9,7 @@
 
 ## 快速开始
 
-[安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.0/SteamVRWallpaperPause1.1.0-Setup.exe)
+[安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.1/SteamVRWallpaperPause-Setup.exe)
 
 ## 杂鱼
 
