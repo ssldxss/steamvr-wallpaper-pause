@@ -11,7 +11,7 @@
 
 [安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.1/SteamVRWallpaperPause-Setup.exe)
 
-## 杂鱼
+## ZakoZako!
 
 <img width="512" height="512" alt="53EA5472A0EF239DD1011DE851DD1100" src="https://github.com/user-attachments/assets/d11caf12-852e-4740-8d8d-f9817c6e7c1c" />
 
