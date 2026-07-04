@@ -1,10 +1,20 @@
 
 # SteamVR 壁纸暂停工具
 
+[English](README_EN.md)
+
+一个给VRChat和其他steamvr玩家做的小工具
+
 当 SteamVR 运行时自动停止或暂停 Wallpaper Engine，SteamVR 关闭后自动恢复。常驻系统托盘，开机自启 — 安装一次即可忘记它的存在。
 
 [English](README_EN.md)
 
+## 快速开始
+
+[安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.0/SteamVRWallpaperPause1.1.0-Setup.exe)
+
+
+## 杂鱼
 
 <img width="512" height="512" alt="53EA5472A0EF239DD1011DE851DD1100" src="https://github.com/user-attachments/assets/d11caf12-852e-4740-8d8d-f9817c6e7c1c" />
 
