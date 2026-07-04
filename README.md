@@ -7,6 +7,7 @@
 
 
 <img width="512" height="512" alt="53EA5472A0EF239DD1011DE851DD1100" src="https://github.com/user-attachments/assets/d11caf12-852e-4740-8d8d-f9817c6e7c1c" />
+
 ## 功能
 
 - **系统托盘图标** 带状态指示（绿色 = 监控中，橙色 = VR 运行中）
