@@ -7,12 +7,9 @@
 
 当 SteamVR 运行时自动停止或暂停 Wallpaper Engine，SteamVR 关闭后自动恢复。常驻系统托盘，开机自启 — 安装一次即可忘记它的存在。
 
-[English](README_EN.md)
-
 ## 快速开始
 
 [安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.0/SteamVRWallpaperPause1.1.0-Setup.exe)
-
 
 ## 杂鱼
 
