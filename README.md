@@ -13,7 +13,9 @@
 
 ## ZakoZako!
 
-<img width="512" height="512" alt="53EA5472A0EF239DD1011DE851DD1100" src="https://github.com/user-attachments/assets/d11caf12-852e-4740-8d8d-f9817c6e7c1c" />
+<img width="500" height="500" alt="53EA5472A0EF239DD1011DE851DD1100" src="https://github.com/user-attachments/assets/d11caf12-852e-4740-8d8d-f9817c6e7c1c" />
+<img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/97d9fca7-7643-4b45-981a-6ff4694b8f85" />
+
 
 ## 功能
 
