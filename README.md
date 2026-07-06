@@ -28,6 +28,12 @@
 - **Windows 安装程序**：开始菜单快捷方式、卸载程序
 - **气泡通知**：壁纸停止/恢复时弹出提示
 
+## 技术栈
+
+![DeepSeek](https://img.shields.io/badge/DeepSeek-v4pro-blue?style=flat-square)
+![Claude](https://img.shields.io/badge/Claude-4.8-purple?style=flat-square)
+![GLM5.2](https://img.shields.io/badge/GLM-5.2-green?style=flat-square)
+
 ## 开发环境要求
 
 - Python 3.10+
