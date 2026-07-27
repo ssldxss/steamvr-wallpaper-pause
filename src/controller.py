@@ -10,12 +10,28 @@ import psutil
 logger = logging.getLogger(__name__)
 
 _WALLPAPER_EXE = "wallpaper32.exe"
+_WALLPAPER_EXE_64 = "wallpaper64.exe"
+# All known wallpaper engine process names (used for process detection)
+_WALLPAPER_PROCS = ("wallpaper32.exe", "wallpaper64.exe", "webwallpaper32.exe", "webwallpaper64.exe")
 _DEFAULT_STEAM_PATH = r"C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine"
 _STEAM_REGISTRY_KEY = r"Software\Valve\Steam"
 
 
+def _find_exe_in_dir(wpe_dir: str) -> str | None:
+    """Check a wallpaper_engine directory for the main executable.
+    Returns the 64-bit exe path if found, otherwise the 32-bit path.
+    """
+    exe_64 = os.path.join(wpe_dir, _WALLPAPER_EXE_64)
+    if os.path.isfile(exe_64):
+        return exe_64
+    exe_32 = os.path.join(wpe_dir, _WALLPAPER_EXE)
+    if os.path.isfile(exe_32):
+        return exe_32
+    return None
+
+
 def find_wallpaper_engine(explicit_path: str | None = None) -> str | None:
-    """Locate wallpaper32.exe on the system.
+    """Locate wallpaper32.exe or wallpaper64.exe on the system.
 
     Resolution order:
     1. Explicit path if provided
@@ -23,24 +39,27 @@ def find_wallpaper_engine(explicit_path: str | None = None) -> str | None:
     3. Steam registry key → library folders → wallpaper_engine
 
     Args:
-        explicit_path: Optional user-specified path to wallpaper32.exe.
+        explicit_path: Optional user-specified path.
 
     Returns:
-        Full path to wallpaper32.exe, or None if not found.
+        Full path to wallpaper32.exe or wallpaper64.exe, or None if not found.
     """
     # 1. Explicit path
     if explicit_path and explicit_path != "auto":
-        full = os.path.join(explicit_path, _WALLPAPER_EXE) if os.path.isdir(explicit_path) else explicit_path
-        if os.path.isfile(full):
-            logger.info(f"Using explicit wallpaper engine path: {full}")
-            return full
-        logger.warning(f"Explicit path not found: {full}")
+        if os.path.isdir(explicit_path):
+            found = _find_exe_in_dir(explicit_path)
+        else:
+            found = explicit_path if os.path.isfile(explicit_path) else None
+        if found:
+            logger.info(f"Using explicit wallpaper engine path: {found}")
+            return found
+        logger.warning(f"Explicit path not found: {explicit_path}")
 
     # 2. Default Steam path
-    default_full = os.path.join(_DEFAULT_STEAM_PATH, _WALLPAPER_EXE)
-    if os.path.isfile(default_full):
-        logger.info(f"Found wallpaper engine at default path: {default_full}")
-        return default_full
+    found = _find_exe_in_dir(_DEFAULT_STEAM_PATH)
+    if found:
+        logger.info(f"Found wallpaper engine at default path: {found}")
+        return found
 
     # 3. Search via Steam registry
     try:
@@ -49,25 +68,27 @@ def find_wallpaper_engine(explicit_path: str | None = None) -> str | None:
         winreg.CloseKey(key)
 
         # Default library: Steam\steamapps\common\wallpaper_engine
-        candidate = os.path.join(steam_path, "steamapps", "common", "wallpaper_engine", _WALLPAPER_EXE)
-        if os.path.isfile(candidate):
-            logger.info(f"Found wallpaper engine via Steam registry: {candidate}")
-            return candidate
+        candidate_dir = os.path.join(steam_path, "steamapps", "common", "wallpaper_engine")
+        found = _find_exe_in_dir(candidate_dir)
+        if found:
+            logger.info(f"Found wallpaper engine via Steam registry: {found}")
+            return found
 
         # Check libraryfolders.vdf for additional library paths
         library_folders_path = os.path.join(steam_path, "steamapps", "libraryfolders.vdf")
         if os.path.isfile(library_folders_path):
             library_paths = _parse_library_folders(library_folders_path)
             for lib_path in library_paths:
-                candidate = os.path.join(lib_path, "steamapps", "common", "wallpaper_engine", _WALLPAPER_EXE)
-                if os.path.isfile(candidate):
-                    logger.info(f"Found wallpaper engine in Steam library: {candidate}")
-                    return candidate
+                candidate_dir = os.path.join(lib_path, "steamapps", "common", "wallpaper_engine")
+                found = _find_exe_in_dir(candidate_dir)
+                if found:
+                    logger.info(f"Found wallpaper engine in Steam library: {found}")
+                    return found
 
     except (OSError, FileNotFoundError):
         logger.debug("Steam registry key not found")
 
-    logger.error("Could not locate wallpaper32.exe")
+    logger.error("Could not locate wallpaper32.exe or wallpaper64.exe")
     return None
 
 
@@ -137,16 +158,21 @@ def stop_wallpaper(path: str) -> bool:
 
 
 def is_wallpaper_running() -> bool:
-    """Check if wallpaper32.exe process is currently running.
+    """Check if any wallpaper32.exe / wallpaper64.exe / webwallpaper32.exe
+    process is currently running.
+
+    Wallpaper Engine may use different process names depending on the
+    32/64-bit mode and whether web wallpapers are active. We check for
+    all known names.
 
     Returns:
-        True if the process exists in the process list, False otherwise.
+        True if any wallpaper engine process is running, False otherwise.
     """
     try:
         for proc in psutil.process_iter(attrs=["name"]):
             try:
                 name = proc.info["name"] or ""
-                if name.lower() == _WALLPAPER_EXE:
+                if name.lower() in _WALLPAPER_PROCS:
                     return True
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
