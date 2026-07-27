@@ -15,8 +15,6 @@ _GREEN = (0, 180, 80)
 _YELLOW = (255, 160, 32)
 _RED = (224, 64, 64)
 
-OnPauseCallback = Callable[[], bool]
-OnResumeCallback = Callable[[], bool]
 OnExitCallback = Callable[[], None]
 OnSettingsCallback = Callable[[], None]
 
@@ -52,9 +50,8 @@ class TrayApp:
         self._icon_yellow = _create_icon_image(_YELLOW)
         self._icon_red = _create_icon_image(_RED)
 
-        self._wallpaper_paused = False
         self._vr_running = False
-        self._is_stopped = False
+        self._wallpaper_status: str = "running"  # running/paused/stopped/not_running
         self._icon: pystray.Icon | None = None
 
     @property
@@ -68,15 +65,6 @@ class TrayApp:
             self._icon.update_menu()
 
     @property
-    def wallpaper_paused(self) -> bool:
-        return self._wallpaper_paused
-
-    @wallpaper_paused.setter
-    def wallpaper_paused(self, value: bool) -> None:
-        self._wallpaper_paused = value
-        self._update_icon()
-
-    @property
     def vr_running(self) -> bool:
         return self._vr_running
 
@@ -86,14 +74,13 @@ class TrayApp:
         self._update_icon()
 
     @property
-    def is_stopped(self) -> bool:
-        return self._is_stopped
+    def wallpaper_status(self) -> str:
+        return self._wallpaper_status
 
-    @is_stopped.setter
-    def is_stopped(self, value: bool) -> None:
-        self._is_stopped = value
-        if self._icon:
-            self._icon.update_menu()
+    @wallpaper_status.setter
+    def wallpaper_status(self, value: str) -> None:
+        self._wallpaper_status = value
+        self._update_icon()
 
     def _update_icon(self) -> None:
         """Update the tray icon based on current state."""
@@ -101,25 +88,26 @@ class TrayApp:
             return
         if self._vr_running:
             self._icon.icon = self._icon_red
-        elif self._wallpaper_paused:
+        elif self._wallpaper_status == "paused":
             self._icon.icon = self._icon_yellow
         else:
             self._icon.icon = self._icon_green
         self._icon.update_menu()
 
     def _build_menu(self) -> pystray.Menu:
-        """Build the right-click context menu (no manual pause/resume)."""
-        if self._vr_running and self._is_stopped:
-            status_text = t("status_vr_stopped", self._lang)
-        elif self._vr_running:
-            status_text = t("status_vr_active", self._lang)
-        elif self._wallpaper_paused:
-            status_text = t("status_vr_active", self._lang)
+        """Build the right-click context menu with dual status lines."""
+        # SteamVR status line
+        if self._vr_running:
+            vr_text = t("vr_running", self._lang)
         else:
-            status_text = t("status_monitoring", self._lang)
+            vr_text = t("vr_not_running", self._lang)
+
+        # Wallpaper status line
+        wp_text = t(f"wp_{self._wallpaper_status}", self._lang)
 
         return pystray.Menu(
-            pystray.MenuItem(status_text, None, enabled=False),
+            pystray.MenuItem(vr_text, None, enabled=False),
+            pystray.MenuItem(wp_text, None, enabled=False),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(t("settings", self._lang), self._on_settings_click),
             pystray.MenuItem(t("exit", self._lang), self._on_exit_click),

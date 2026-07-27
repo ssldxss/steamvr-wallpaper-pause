@@ -21,6 +21,7 @@ DEFAULT_CONFIG: dict[str, str | int | bool] = {
     "verbose": False,
     "language": "zh",
     "action_on_vr_start": "stop",
+    "auto_restart_wallpaper": False,
 }
 
 
@@ -135,6 +136,14 @@ class Config:
         if value not in _VALID_LANGUAGES:
             raise ValueError(f"language must be one of {_VALID_LANGUAGES}")
         self._data["language"] = value
+
+    @property
+    def auto_restart_wallpaper(self) -> bool:
+        return bool(self._data.get("auto_restart_wallpaper", False))
+
+    @auto_restart_wallpaper.setter
+    def auto_restart_wallpaper(self, value: bool) -> None:
+        self._data["auto_restart_wallpaper"] = bool(value)
 
     def to_dict(self) -> dict:
         return dict(self._data)

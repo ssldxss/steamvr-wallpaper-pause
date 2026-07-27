@@ -23,6 +23,7 @@ class SettingsWindow:
         self._autostart_var: tk.BooleanVar | None = None
         self._action_var: tk.StringVar | None = None
         self._language_var: tk.StringVar | None = None
+        self._auto_restart_var: tk.BooleanVar | None = None
 
     @property
     def _lang(self) -> Lang:
@@ -41,7 +42,7 @@ class SettingsWindow:
         self._window.title(t("settings_title", lang))
         self._window.resizable(False, False)
         self._window.protocol("WM_DELETE_WINDOW", self._on_cancel)
-        self._window.geometry("560x410")
+        self._window.geometry("560x450")
         self._window.configure(bg="#f0f0f0")
 
         main_frame = ttk.Frame(self._window, padding=16)
@@ -125,7 +126,16 @@ class SettingsWindow:
             text=t("autostart", lang),
             variable=self._autostart_var,
         )
-        autostart_check.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=(4, 12))
+        autostart_check.grid(row=6, column=0, columnspan=2, sticky=tk.W, pady=(4, 4))
+
+        # --- Auto-restart ---
+        self._auto_restart_var = tk.BooleanVar(value=self._config.auto_restart_wallpaper)
+        auto_restart_check = ttk.Checkbutton(
+            main_frame,
+            text=t("autorestart", lang),
+            variable=self._auto_restart_var,
+        )
+        auto_restart_check.grid(row=7, column=0, columnspan=2, sticky=tk.W, pady=(4, 12))
 
         # --- Version ---
         ttk.Label(
@@ -133,7 +143,7 @@ class SettingsWindow:
             text=t("version", lang),
             foreground="#888888",
             font=("Segoe UI", 8),
-        ).grid(row=7, column=0, columnspan=2, sticky=tk.W, pady=(0, 4))
+        ).grid(row=8, column=0, columnspan=2, sticky=tk.W, pady=(0, 4))
 
         # --- GitHub link ---
         link_label = tk.Label(
@@ -144,12 +154,12 @@ class SettingsWindow:
             font=("Segoe UI", 9, "underline"),
             bg="#f0f0f0",
         )
-        link_label.grid(row=8, column=0, columnspan=2, sticky=tk.W, pady=(0, 12))
+        link_label.grid(row=9, column=0, columnspan=2, sticky=tk.W, pady=(0, 12))
         link_label.bind("<Button-1>", self._open_github)
 
         # --- Buttons ---
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=9, column=0, columnspan=2, sticky=tk.E, pady=(8, 0))
+        button_frame.grid(row=10, column=0, columnspan=2, sticky=tk.E, pady=(8, 0))
 
         cancel_btn = ttk.Button(button_frame, text=t("cancel", lang), command=self._on_cancel)
         cancel_btn.pack(side=tk.RIGHT, padx=(8, 0))
@@ -219,6 +229,9 @@ class SettingsWindow:
                 self._config.language = "zh"
             else:
                 self._config.language = "en"
+
+        if self._auto_restart_var is not None:
+            self._config.auto_restart_wallpaper = self._auto_restart_var.get()
 
         self._config.save()
 

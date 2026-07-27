@@ -20,7 +20,7 @@ try:
     # Try absolute imports (scripts run directly)
     from config import Config  # noqa: E402
     from detector import is_steamvr_running  # noqa: E402
-    from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper  # noqa: E402
+    from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper, is_wallpaper_running, start_wallpaper_process  # noqa: E402
     from autostart import enable_autostart, disable_autostart, is_autostart_enabled, cleanup_legacy_autostart  # noqa: E402
     from tray import TrayApp  # noqa: E402
     from settings import SettingsWindow  # noqa: E402
@@ -29,7 +29,7 @@ except Exception:
     # Fallback to relative imports when package is executed as a module
     from .config import Config  # noqa: E402
     from .detector import is_steamvr_running  # noqa: E402
-    from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper  # noqa: E402
+    from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper, is_wallpaper_running, start_wallpaper_process  # noqa: E402
     from .autostart import enable_autostart, disable_autostart, is_autostart_enabled, cleanup_legacy_autostart  # noqa: E402
     from .tray import TrayApp  # noqa: E402
     from .settings import SettingsWindow  # noqa: E402
@@ -48,17 +48,32 @@ class Monitor:
     def __init__(self, config: Config):
         self._config = config
         self._steamvr_running = False
-        self._paused_by_us = False
         self._wallpaper_path: str | None = None
         self._running = False
         self._tray_app: TrayApp | None = None
         self._monitor_thread: threading.Thread | None = None
         self._settings_window: SettingsWindow | None = None
         self._tk_root: tk.Tk | None = None
+        # Wallpaper state tracking
+        self._paused_by_us = False
+        self._last_was_resumed = False  # True after we resume on VR stop
 
     @property
     def _lang(self) -> Lang:
         return self._config.language  # type: ignore[return-value]
+
+    def _compute_wallpaper_status(self) -> str:
+        """Determine the current wallpaper status string for the tray menu."""
+        if self._steamvr_running:
+            if self._config.action_on_vr_start == "stop":
+                return "stopped"
+            return "paused"
+        # Not in VR
+        if not is_wallpaper_running():
+            return "not_running"
+        if self._paused_by_us:
+            return "paused"
+        return "running"
 
     def run(self) -> None:
         """Start the application: tkinter root + tray icon + monitoring loop."""
@@ -74,7 +89,6 @@ class Monitor:
             logger.info(t("log_startup_check", self._lang))
             resume_wallpaper(self._wallpaper_path)
 
-        # Remove legacy duplicate auto-start entry from older builds
         cleanup_legacy_autostart()
 
         if self._config.auto_start != is_autostart_enabled():
@@ -104,7 +118,6 @@ class Monitor:
             new_path = find_wallpaper_engine(self._config.get_explicit_path())
             if new_path:
                 self._wallpaper_path = new_path
-            # Refresh tray language
             if self._tray_app:
                 self._tray_app.lang = self._lang
 
@@ -123,23 +136,19 @@ class Monitor:
             self._shutdown()
 
     def _shutdown(self) -> None:
-        """Clean shutdown of tray, monitoring, and tkinter."""
+        """Clean shutdown."""
         logger.info(t("log_shutdown", self._lang))
         self._running = False
-
         if self._tray_app:
             self._tray_app.stop()
-
         if self._monitor_thread and self._monitor_thread.is_alive():
             self._monitor_thread.join(timeout=2)
-
         if self._tk_root:
             try:
                 self._tk_root.quit()
                 self._tk_root.destroy()
             except Exception:
                 pass
-
         logger.info(t("log_shutdown_done", self._lang))
 
     def _monitor_loop(self) -> None:
@@ -150,6 +159,7 @@ class Monitor:
                 vr_now = is_steamvr_running()
                 lang = self._lang
 
+                # ── SteamVR started ──
                 if vr_now and not self._steamvr_running:
                     action = self._config.action_on_vr_start
                     logger.info(
@@ -163,14 +173,12 @@ class Monitor:
                     if self._wallpaper_path:
                         if action == "stop":
                             success = stop_wallpaper(self._wallpaper_path)
-                            if success and self._tray_app:
-                                self._tray_app.is_stopped = True
                         else:
                             success = pause_wallpaper(self._wallpaper_path)
                         if success:
                             self._paused_by_us = True
                             if self._tray_app:
-                                self._tray_app.wallpaper_paused = True
+                                self._tray_app.wallpaper_status = self._compute_wallpaper_status()
                                 if action == "stop":
                                     self._tray_app.notify_stop()
                                 else:
@@ -180,6 +188,7 @@ class Monitor:
                     else:
                         logger.warning(t("log_no_path", lang))
 
+                # ── SteamVR stopped ──
                 elif not vr_now and self._steamvr_running:
                     logger.info(t("log_vr_stopped", lang))
                     self._steamvr_running = False
@@ -190,26 +199,35 @@ class Monitor:
                         success = resume_wallpaper(self._wallpaper_path)
                         if success:
                             self._paused_by_us = False
+                            self._last_was_resumed = True
                             if self._tray_app:
-                                self._tray_app.wallpaper_paused = False
-                                self._tray_app.is_stopped = False
                                 self._tray_app.notify_resume()
                         else:
                             logger.debug("Resume failed (process may have exited)")
                             self._paused_by_us = False
-                            if self._tray_app:
-                                self._tray_app.wallpaper_paused = False
-                                self._tray_app.is_stopped = False
-                    elif self._tray_app:
-                        self._tray_app.wallpaper_paused = False
-                        self._tray_app.is_stopped = False
+
+                    # Auto-restart: if wallpaper still not running and config enabled
+                    if self._config.auto_restart_wallpaper and self._wallpaper_path:
+                        if not is_wallpaper_running():
+                            logger.info("Wallpaper not running after VR — auto-restarting")
+                            start_wallpaper_process(self._wallpaper_path)
+                        else:
+                            logger.debug("Wallpaper already running after VR stop, no restart needed")
+
+                    # Update tray status after all actions
+                    if self._tray_app:
+                        self._tray_app.wallpaper_status = self._compute_wallpaper_status()
+
+                # ── Update wallpaper status on each poll cycle ──
+                if self._tray_app:
+                    self._tray_app.wallpaper_status = self._compute_wallpaper_status()
 
                 heartbeat_count += 1
                 if self._config.verbose and heartbeat_count % 10 == 0:
-                    state = "VR" if self._steamvr_running else "idle"
                     logger.debug(
-                        f"Heartbeat [{heartbeat_count}]: SteamVR={state}, "
-                        f"paused_by_us={self._paused_by_us}"
+                        f"Heartbeat [{heartbeat_count}]: "
+                        f"SteamVR={'on' if self._steamvr_running else 'off'}, "
+                        f"wp={self._compute_wallpaper_status()}"
                     )
 
             except Exception as e:
@@ -218,7 +236,7 @@ class Monitor:
             time.sleep(self._config.polling_interval)
 
     def _show_settings(self) -> None:
-        """Show the settings window (called from tray menu callback)."""
+        """Show the settings window."""
         if self._settings_window and self._tk_root:
             self._tk_root.after(0, self._settings_window.show)
 

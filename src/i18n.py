@@ -5,12 +5,16 @@ from typing import Literal
 Lang = Literal["zh", "en"]
 
 TEXTS: dict[str, dict[Lang, str]] = {
-    # Tray menu
-    "status_monitoring": {"zh": "状态：监控中", "en": "Status: Monitoring"},
-    "status_vr_active": {"zh": "状态：VR 运行中 — 壁纸已暂停", "en": "Status: VR Active — Wallpaper Paused"},
-    "status_vr_stopped": {"zh": "状态：VR 运行中 — 壁纸已停止", "en": "Status: VR Active — Wallpaper Stopped"},
+    # Tray menu — dual status lines
+    "vr_running": {"zh": "SteamVR: 运行中", "en": "SteamVR: Running"},
+    "vr_not_running": {"zh": "SteamVR: 未运行", "en": "SteamVR: Not Running"},
+    "wp_running": {"zh": "壁纸引擎: 运行中", "en": "Wallpaper: Running"},
+    "wp_paused": {"zh": "壁纸引擎: 已暂停", "en": "Wallpaper: Paused"},
+    "wp_stopped": {"zh": "壁纸引擎: 已停止(释放内存)", "en": "Wallpaper: Stopped (Frees Memory)"},
+    "wp_not_running": {"zh": "壁纸引擎: 未运行", "en": "Wallpaper: Not Running"},
     "settings": {"zh": "设置", "en": "Settings"},
     "exit": {"zh": "退出", "en": "Exit"},
+    "autorestart": {"zh": "SteamVR 关闭后若壁纸引擎已退出则自动启动", "en": "Auto-restart wallpaper if stopped when SteamVR closes"},
     # Notifications
     "notify_pause": {"zh": "壁纸引擎已暂停 — SteamVR 正在运行", "en": "Wallpaper Engine paused — SteamVR is running"},
     "notify_stop": {"zh": "壁纸引擎已停止 — SteamVR 正在运行", "en": "Wallpaper Engine stopped — SteamVR is running"},

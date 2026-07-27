@@ -5,6 +5,8 @@ import os
 import logging
 import winreg
 
+import psutil
+
 logger = logging.getLogger(__name__)
 
 _WALLPAPER_EXE = "wallpaper32.exe"
@@ -134,6 +136,46 @@ def stop_wallpaper(path: str) -> bool:
     return _run_control_command(path, "stop")
 
 
+def is_wallpaper_running() -> bool:
+    """Check if wallpaper32.exe process is currently running.
+
+    Returns:
+        True if the process exists in the process list, False otherwise.
+    """
+    try:
+        for proc in psutil.process_iter(attrs=["name"]):
+            try:
+                name = proc.info["name"] or ""
+                if name.lower() == _WALLPAPER_EXE:
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception as e:
+        logger.warning(f"Error checking wallpaper process: {e}")
+    return False
+
+
+def start_wallpaper_process(path: str) -> bool:
+    """Launch wallpaper32.exe as a detached process.
+
+    Args:
+        path: Full path to wallpaper32.exe.
+
+    Returns:
+        True if the process was launched, False otherwise.
+    """
+    if not os.path.isfile(path):
+        logger.error(f"Cannot start - exe not found: {path}")
+        return False
+    try:
+        subprocess.Popen([path], shell=False)
+        logger.info("Wallpaper Engine process launched")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to launch Wallpaper Engine: {e}")
+        return False
+
+
 def _run_control_command(exe_path: str, action: str) -> bool:
     """Execute a wallpaper32.exe control command.
 
@@ -147,6 +189,14 @@ def _run_control_command(exe_path: str, action: str) -> bool:
     if not os.path.isfile(exe_path):
         logger.error(f"Wallpaper engine executable not found: {exe_path}")
         return False
+
+    # If process is not running, skip stop/pause to avoid accidentally launching it
+    if action in ("stop", "pause") and not is_wallpaper_running():
+        logger.info(
+            f"Wallpaper Engine not running, skipping '{action}' "
+            "(would otherwise launch the process)"
+        )
+        return True
 
     try:
         result = subprocess.run(
