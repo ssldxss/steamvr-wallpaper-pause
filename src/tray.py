@@ -62,7 +62,7 @@ class TrayApp:
     def lang(self, value: Lang) -> None:
         self._lang = value
         if self._icon:
-            self._icon.update_menu()
+            self._icon.menu = self._build_menu()
 
     @property
     def vr_running(self) -> bool:
@@ -83,7 +83,7 @@ class TrayApp:
         self._update_icon()
 
     def _update_icon(self) -> None:
-        """Update the tray icon based on current state."""
+        """Update the tray icon and menu based on current state."""
         if self._icon is None:
             return
         if self._vr_running:
@@ -92,7 +92,8 @@ class TrayApp:
             self._icon.icon = self._icon_yellow
         else:
             self._icon.icon = self._icon_green
-        self._icon.update_menu()
+        # Rebuild menu with fresh status text — pystray only evaluates text once
+        self._icon.menu = self._build_menu()
 
     def _build_menu(self) -> pystray.Menu:
         """Build the right-click context menu with dual status lines."""

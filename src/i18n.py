@@ -36,7 +36,7 @@ TEXTS: dict[str, dict[Lang, str]] = {
     "save": {"zh": "保存", "en": "Save"},
     "cancel": {"zh": "取消", "en": "Cancel"},
     "browse": {"zh": "浏览...", "en": "Browse..."},
-    "version": {"zh": "版本：v1.1.2", "en": "Version: v1.1.2"},
+    "version": {"zh": "版本：v1.1.3", "en": "Version: v1.1.3"},
     "about": {"zh": "关于", "en": "About"},
     "invalid_interval": {"zh": "轮询间隔必须为大于 0 的数字。", "en": "Polling interval must be a number greater than 0."},
     "invalid_title": {"zh": "无效输入", "en": "Invalid Value"},

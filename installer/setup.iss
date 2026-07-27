@@ -2,7 +2,7 @@
 ; Requires Inno Setup 6: https://jrsoftware.org/isinfo.php
 
 #define MyAppName "SteamVR Wallpaper Pause"
-#define MyAppVersion "1.1.2"
+#define MyAppVersion "1.1.3"
 #define MyAppPublisher "Open Source"
 #define MyAppURL "https://github.com/ssldxss/steamvr-wallpaper-pause"
 #define MyAppExeName "SteamVRWallpaperPause.exe"

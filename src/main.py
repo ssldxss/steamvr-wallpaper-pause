@@ -56,23 +56,32 @@ class Monitor:
         self._tk_root: tk.Tk | None = None
         # Wallpaper state tracking
         self._paused_by_us = False
-        self._last_was_resumed = False  # True after we resume on VR stop
 
     @property
     def _lang(self) -> Lang:
         return self._config.language  # type: ignore[return-value]
 
     def _compute_wallpaper_status(self) -> str:
-        """Determine the current wallpaper status string for the tray menu."""
-        if self._steamvr_running:
-            if self._config.action_on_vr_start == "stop":
-                return "stopped"
-            return "paused"
-        # Not in VR
-        if not is_wallpaper_running():
+        """Determine wallpaper status from actual process state and our actions.
+
+        Priority:
+        1. Process not running → 'not_running'
+        2. VR active, action=stop → 'stopped'
+        3. VR active, action=pause → 'paused'
+        4. Paused by us (outside VR) → 'paused'
+        5. Otherwise → 'running'
+        """
+        proc_running = is_wallpaper_running()
+
+        if not proc_running:
             return "not_running"
+
+        if self._steamvr_running:
+            return "stopped" if self._config.action_on_vr_start == "stop" else "paused"
+
         if self._paused_by_us:
             return "paused"
+
         return "running"
 
     def run(self) -> None:
@@ -178,7 +187,6 @@ class Monitor:
                         if success:
                             self._paused_by_us = True
                             if self._tray_app:
-                                self._tray_app.wallpaper_status = self._compute_wallpaper_status()
                                 if action == "stop":
                                     self._tray_app.notify_stop()
                                 else:
@@ -199,7 +207,6 @@ class Monitor:
                         success = resume_wallpaper(self._wallpaper_path)
                         if success:
                             self._paused_by_us = False
-                            self._last_was_resumed = True
                             if self._tray_app:
                                 self._tray_app.notify_resume()
                         else:
@@ -213,10 +220,6 @@ class Monitor:
                             start_wallpaper_process(self._wallpaper_path)
                         else:
                             logger.debug("Wallpaper already running after VR stop, no restart needed")
-
-                    # Update tray status after all actions
-                    if self._tray_app:
-                        self._tray_app.wallpaper_status = self._compute_wallpaper_status()
 
                 # ── Update wallpaper status on each poll cycle ──
                 if self._tray_app:
