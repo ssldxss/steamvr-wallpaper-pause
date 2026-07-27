@@ -9,7 +9,7 @@
 
 ## 快速开始
 
-[安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.1/SteamVRWallpaperPause-Setup.exe)
+[安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/download/1.1.2/SteamVRWallpaperPause-Setup.exe)
 
 [安装程序(蓝凑云密码:8zpo)](https://wwbmp.lanzoul.com/i76fb3v3u7kf)
 
