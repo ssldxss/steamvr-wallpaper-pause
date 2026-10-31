@@ -84,6 +84,10 @@ begin
   ConfigDir := AppDataDir + '\SteamVRWallpaperPause';
   ConfigPath := ConfigDir + '\config.json';
 
+  // Preserve user settings when reinstalling or upgrading.
+  if FileExists(ConfigPath) then
+    Exit;
+
   if not DirExists(ConfigDir) then
     CreateDir(ConfigDir);
 

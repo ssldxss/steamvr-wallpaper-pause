@@ -66,8 +66,8 @@ class Monitor:
 
         Priority:
         1. Process not running → 'not_running'
-        2. VR active, action=stop → 'stopped'
-        3. VR active, action=pause → 'paused'
+        2. VR active, stopped by us → 'stopped'
+        3. VR active, paused by us → 'paused'
         4. Paused by us (outside VR) → 'paused'
         5. Otherwise → 'running'
         """
@@ -76,7 +76,7 @@ class Monitor:
         if not proc_running:
             return "not_running"
 
-        if self._steamvr_running:
+        if self._steamvr_running and self._paused_by_us:
             return "stopped" if self._config.action_on_vr_start == "stop" else "paused"
 
         if self._paused_by_us:
@@ -184,14 +184,14 @@ class Monitor:
                             success = stop_wallpaper(self._wallpaper_path)
                         else:
                             success = pause_wallpaper(self._wallpaper_path)
-                        if success:
+                        if success is True:
                             self._paused_by_us = True
                             if self._tray_app:
                                 if action == "stop":
                                     self._tray_app.notify_stop()
                                 else:
                                     self._tray_app.notify_pause()
-                        elif self._tray_app:
+                        elif success is False and self._tray_app:
                             self._tray_app.notify_error(t("notify_error", lang))
                     else:
                         logger.warning(t("log_no_path", lang))

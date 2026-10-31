@@ -3,6 +3,7 @@
 import sys
 import os
 import logging
+import subprocess
 import winreg
 
 logger = logging.getLogger(__name__)
@@ -12,20 +13,14 @@ _VALUE_NAME = "SteamVR Wallpaper Pause"  # must match installer's {#MyAppName}
 _LEGACY_VALUE_NAME = "SteamVRWallpaperPause"  # old name from v1.0.0 builds — removed on upgrade
 
 
-def _get_exe_path() -> str:
-    """Get the path to use for the auto-start registry entry.
-
-    When running as a PyInstaller bundle, use sys.executable.
-    When running as a script, use the Python interpreter + main.py.
-    """
-    if getattr(sys, "frozen", False):
-        # Running as PyInstaller bundle
-        return sys.executable
-
-    # Running as script — construct command to launch main.py
-    python = sys.executable
-    main_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main.py")
-    return f'"{python}" "{main_py}"'
+def _get_autostart_command() -> str:
+    """Quote the complete startup command for Windows, in source or bundled mode."""
+    args = [sys.executable]
+    if not getattr(sys, "frozen", False):
+        main_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main.py")
+        args.append(main_py)
+    args.append("--minimized")
+    return subprocess.list2cmdline(args)
 
 
 def enable_autostart() -> bool:
@@ -34,9 +29,7 @@ def enable_autostart() -> bool:
     Returns:
         True if the registry key was written successfully.
     """
-    exe_path = _get_exe_path()
-    # Add --minimized so it starts to tray without showing a window
-    command = f'"{exe_path}" --minimized'
+    command = _get_autostart_command()
 
     try:
         key = winreg.OpenKey(

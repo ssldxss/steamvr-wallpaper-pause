@@ -121,14 +121,14 @@ def _parse_library_folders(vdf_path: str) -> list[str]:
     return paths
 
 
-def pause_wallpaper(path: str) -> bool:
+def pause_wallpaper(path: str) -> bool | None:
     """Pause Wallpaper Engine via -control pause.
 
     Args:
         path: Full path to wallpaper32.exe.
 
     Returns:
-        True if the command succeeded, False otherwise.
+        True if executed successfully, False on failure, None if not running.
     """
     return _run_control_command(path, "pause")
 
@@ -142,17 +142,17 @@ def resume_wallpaper(path: str) -> bool:
     Returns:
         True if the command succeeded, False otherwise.
     """
-    return _run_control_command(path, "play")
+    return _run_control_command(path, "play") is True
 
 
-def stop_wallpaper(path: str) -> bool:
+def stop_wallpaper(path: str) -> bool | None:
     """Stop Wallpaper Engine via -control stop.
 
     Args:
         path: Full path to wallpaper32.exe.
 
     Returns:
-        True if the command succeeded, False otherwise.
+        True if executed successfully, False on failure, None if not running.
     """
     return _run_control_command(path, "stop")
 
@@ -202,15 +202,16 @@ def start_wallpaper_process(path: str) -> bool:
         return False
 
 
-def _run_control_command(exe_path: str, action: str) -> bool:
+def _run_control_command(exe_path: str, action: str) -> bool | None:
     """Execute a wallpaper32.exe control command.
 
     Args:
         exe_path: Full path to wallpaper32.exe.
-        action: "pause" or "play".
+        action: "stop", "pause", or "play".
 
     Returns:
-        True if the command returned exit code 0, False otherwise.
+        True if the command returned exit code 0, False on failure, or None
+        if stop/pause was skipped because Wallpaper Engine was not running.
     """
     if not os.path.isfile(exe_path):
         logger.error(f"Wallpaper engine executable not found: {exe_path}")
@@ -222,7 +223,7 @@ def _run_control_command(exe_path: str, action: str) -> bool:
             f"Wallpaper Engine not running, skipping '{action}' "
             "(would otherwise launch the process)"
         )
-        return True
+        return None
 
     try:
         result = subprocess.run(
