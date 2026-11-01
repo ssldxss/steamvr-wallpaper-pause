@@ -2,7 +2,7 @@
 ; Requires Inno Setup 6: https://jrsoftware.org/isinfo.php
 
 #define MyAppName "SteamVR Wallpaper Pause"
-#define MyAppVersion "1.1.3"
+#define MyAppVersion "1.2.3"
 #define MyAppPublisher "Open Source"
 #define MyAppURL "https://github.com/ssldxss/steamvr-wallpaper-pause"
 #define MyAppExeName "SteamVRWallpaperPause.exe"
@@ -102,7 +102,7 @@ begin
     AutoStartVal := 'false';
 
   ConfigJSON := '{' + #13#10 +
-    '  "polling_interval": 5,' + #13#10 +
+    '  "polling_interval": 1,' + #13#10 +
     '  "wallpaper_engine_path": "auto",' + #13#10 +
     '  "auto_start": ' + AutoStartVal + ',' + #13#10 +
     '  "verbose": false,' + #13#10 +

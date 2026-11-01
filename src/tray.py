@@ -52,6 +52,7 @@ class TrayApp:
 
         self._vr_running = False
         self._wallpaper_status: str = "running"  # running/paused/stopped/not_running
+        self._boost_status: str | None = None
         self._icon: pystray.Icon | None = None
 
     @property
@@ -95,6 +96,17 @@ class TrayApp:
         # Rebuild menu with fresh status text — pystray only evaluates text once
         self._icon.menu = self._build_menu()
 
+    @property
+    def boost_status(self) -> str | None:
+        return self._boost_status
+
+    @boost_status.setter
+    def boost_status(self, value: str | None):
+        if value != self._boost_status:
+            self._boost_status = value
+            if self._icon:
+                self._icon.menu = self._build_menu()
+
     def _build_menu(self) -> pystray.Menu:
         """Build the right-click context menu with dual status lines."""
         # SteamVR status line
@@ -106,9 +118,14 @@ class TrayApp:
         # Wallpaper status line
         wp_text = t(f"wp_{self._wallpaper_status}", self._lang)
 
-        return pystray.Menu(
+        items = [
             pystray.MenuItem(vr_text, None, enabled=False),
             pystray.MenuItem(wp_text, None, enabled=False),
+        ]
+        if self._boost_status:
+            items.append(pystray.MenuItem("UU: " + self._boost_status, None, enabled=False))
+        return pystray.Menu(
+            *items,
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(t("settings", self._lang), self._on_settings_click),
             pystray.MenuItem(t("exit", self._lang), self._on_exit_click),

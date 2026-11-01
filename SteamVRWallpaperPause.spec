@@ -20,6 +20,7 @@ a = Analysis(
         'tray',
         'settings',
         'i18n',
+        'uu',
     ],
     hookspath=[],
     hooksconfig={},

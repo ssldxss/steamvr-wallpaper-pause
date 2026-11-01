@@ -30,7 +30,26 @@ class ExistingConfigTests(unittest.TestCase):
                 with self.subTest(key=key):
                     self.assertEqual(loaded.to_dict()[key], value)
             self.assertFalse(loaded.auto_restart_wallpaper)
+            self.assertFalse(loaded.uu_enabled)
             self.assertEqual(path.read_bytes(), original)
+
+    def test_uu_settings_round_trip(self):
+        values = {
+            "uu_enabled": True, "uu_trigger": "either", "uu_auto_launch": False,
+            "uu_stop_on_exit": True, "uu_cli_path": r"D:\UU Tools\uu-cli.exe",
+            "uu_zone_id": "jp", "uu_server_id": "all", "uu_region_name": "日本",
+        }
+        with TemporaryDirectory() as temporary_dir:
+            path = Path(temporary_dir) / "config.json"
+            with patch.object(config, "_get_config_path", return_value=path):
+                current = config.Config()
+                for key, value in values.items():
+                    setattr(current, key, value)
+                current.save()
+                loaded = config.Config()
+                for key, value in values.items():
+                    with self.subTest(key=key):
+                        self.assertEqual(getattr(loaded, key), value)
 
 
 if __name__ == "__main__":

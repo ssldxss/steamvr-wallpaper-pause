@@ -19,21 +19,23 @@ if _SRC_DIR not in sys.path:
 try:
     # Try absolute imports (scripts run directly)
     from config import Config  # noqa: E402
-    from detector import is_steamvr_running  # noqa: E402
+    from detector import is_steamvr_running, is_vrchat_running  # noqa: E402
+    from uu import UUOptions, UUWorker  # noqa: E402
     from controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper, is_wallpaper_running, start_wallpaper_process  # noqa: E402
     from autostart import enable_autostart, disable_autostart, is_autostart_enabled, cleanup_legacy_autostart  # noqa: E402
     from tray import TrayApp  # noqa: E402
     from settings import SettingsWindow  # noqa: E402
-    from i18n import t, Lang  # noqa: E402
+    from i18n import t, Lang, uu_status_text  # noqa: E402
 except Exception:
     # Fallback to relative imports when package is executed as a module
     from .config import Config  # noqa: E402
-    from .detector import is_steamvr_running  # noqa: E402
+    from .detector import is_steamvr_running, is_vrchat_running  # noqa: E402
+    from .uu import UUOptions, UUWorker  # noqa: E402
     from .controller import find_wallpaper_engine, pause_wallpaper, resume_wallpaper, stop_wallpaper, is_wallpaper_running, start_wallpaper_process  # noqa: E402
     from .autostart import enable_autostart, disable_autostart, is_autostart_enabled, cleanup_legacy_autostart  # noqa: E402
     from .tray import TrayApp  # noqa: E402
     from .settings import SettingsWindow  # noqa: E402
-    from .i18n import t, Lang  # noqa: E402
+    from .i18n import t, Lang, uu_status_text  # noqa: E402
 
 import threading  # noqa: E402
 import time  # noqa: E402
@@ -56,6 +58,7 @@ class Monitor:
         self._tk_root: tk.Tk | None = None
         # Wallpaper state tracking
         self._paused_by_us = False
+        self._uu_worker = UUWorker()
 
     @property
     def _lang(self) -> Lang:
@@ -84,7 +87,7 @@ class Monitor:
 
         return "running"
 
-    def run(self) -> None:
+    def run(self, *, show_settings: bool = False) -> None:
         """Start the application: tkinter root + tray icon + monitoring loop."""
         logger.info(t("log_starting", self._lang))
 
@@ -130,12 +133,18 @@ class Monitor:
             if self._tray_app:
                 self._tray_app.lang = self._lang
 
-        self._settings_window = SettingsWindow(self._config, on_save_callback=on_saved)
+        self._settings_window = SettingsWindow(
+            self._config, on_save_callback=on_saved,
+            uu_state_provider=lambda: self._uu_worker.state,
+        )
 
         tray_thread = threading.Thread(
             target=self._tray_app.run, daemon=True, name="tray"
         )
         tray_thread.start()
+
+        if show_settings:
+            self._tk_root.after(0, self._show_settings)
 
         try:
             self._tk_root.mainloop()
@@ -148,6 +157,7 @@ class Monitor:
         """Clean shutdown."""
         logger.info(t("log_shutdown", self._lang))
         self._running = False
+        self._uu_worker.close()
         if self._tray_app:
             self._tray_app.stop()
         if self._monitor_thread and self._monitor_thread.is_alive():
@@ -222,6 +232,17 @@ class Monitor:
                             logger.debug("Wallpaper already running after VR stop, no restart needed")
 
                 # ── Update wallpaper status on each poll cycle ──
+                if self._config.uu_enabled or self._uu_worker.started:
+                    self._uu_worker.update(
+                        UUOptions.from_config(self._config),
+                        steamvr_running=vr_now,
+                        vrchat_running=is_vrchat_running() if self._config.uu_enabled else False,
+                    )
+                    if self._tray_app:
+                        self._tray_app.boost_status = (
+                            uu_status_text(self._uu_worker.state, lang)
+                            if self._config.uu_enabled else None
+                        )
                 if self._tray_app:
                     self._tray_app.wallpaper_status = self._compute_wallpaper_status()
 
@@ -295,7 +316,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--interval", type=int, default=None,
-        help="Polling interval in seconds (default: 5)",
+        help="Polling interval in seconds (default: 1)",
     )
     parser.add_argument(
         "--wallpaper-engine-path", type=str, default=None,
@@ -312,6 +333,10 @@ def main() -> None:
     parser.add_argument(
         "--minimized", action="store_true",
         help="Start minimized to tray (used by auto-start)",
+    )
+    parser.add_argument(
+        "--settings", action="store_true",
+        help="Open settings on startup",
     )
     parser.add_argument(
         "--remove-autostart", action="store_true",
@@ -345,7 +370,7 @@ def main() -> None:
     logger.info(f"Wallpaper engine path: {config.wallpaper_engine_path}")
 
     monitor = Monitor(config)
-    monitor.run()
+    monitor.run(show_settings=args.settings)
 
 
 if __name__ == "__main__":

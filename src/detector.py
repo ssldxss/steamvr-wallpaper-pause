@@ -40,3 +40,17 @@ def is_steamvr_running() -> bool:
         logger.warning(f"Error iterating processes: {e}")
 
     return False
+
+
+def is_vrchat_running() -> bool:
+    """Detect desktop and VR sessions using VRChat's actual game process."""
+    try:
+        for proc in psutil.process_iter(attrs=["name"]):
+            try:
+                if (proc.info["name"] or "").lower() == "vrchat.exe":
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+    except Exception as error:
+        logger.warning("Error checking VRChat process: %s", error)
+    return False

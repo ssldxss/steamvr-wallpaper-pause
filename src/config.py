@@ -15,13 +15,22 @@ _VALID_ACTIONS = ("pause", "stop")
 _VALID_LANGUAGES = ("zh", "en")
 
 DEFAULT_CONFIG: dict[str, str | int | bool] = {
-    "polling_interval": 5,
+    "polling_interval": 1,
     "wallpaper_engine_path": "auto",
     "auto_start": True,
     "verbose": False,
     "language": "zh",
     "action_on_vr_start": "stop",
     "auto_restart_wallpaper": False,
+    "uu_enabled": False,
+    "uu_trigger": "vrchat",
+    "uu_auto_launch": True,
+    "uu_stop_on_exit": False,
+    "uu_cli_path": "auto",
+    "uu_game_id": "5a4f5632e3a8b2db8b86a51f",
+    "uu_zone_id": "",
+    "uu_server_id": "",
+    "uu_region_name": "",
 }
 
 
@@ -147,6 +156,83 @@ class Config:
 
     def to_dict(self) -> dict:
         return dict(self._data)
+
+    @property
+    def uu_enabled(self) -> bool:
+        return bool(self._data["uu_enabled"])
+
+    @uu_enabled.setter
+    def uu_enabled(self, value: bool):
+        self._data["uu_enabled"] = bool(value)
+
+    @property
+    def uu_trigger(self) -> str:
+        value = str(self._data["uu_trigger"])
+        return value if value in ("vrchat", "steamvr", "either") else "vrchat"
+
+    @uu_trigger.setter
+    def uu_trigger(self, value: str):
+        if value not in ("vrchat", "steamvr", "either"):
+            raise ValueError("Unknown UU trigger")
+        self._data["uu_trigger"] = value
+
+    @property
+    def uu_auto_launch(self) -> bool:
+        return bool(self._data["uu_auto_launch"])
+
+    @uu_auto_launch.setter
+    def uu_auto_launch(self, value: bool):
+        self._data["uu_auto_launch"] = bool(value)
+
+    @property
+    def uu_stop_on_exit(self) -> bool:
+        return bool(self._data["uu_stop_on_exit"])
+
+    @uu_stop_on_exit.setter
+    def uu_stop_on_exit(self, value: bool):
+        self._data["uu_stop_on_exit"] = bool(value)
+
+    @property
+    def uu_cli_path(self) -> str:
+        return str(self._data["uu_cli_path"]).strip() or "auto"
+
+    @uu_cli_path.setter
+    def uu_cli_path(self, value: str):
+        self._data["uu_cli_path"] = value.strip() or "auto"
+
+    @property
+    def uu_game_id(self) -> str:
+        return str(self._data["uu_game_id"])
+
+    @uu_game_id.setter
+    def uu_game_id(self, value: str):
+        if not value.strip():
+            raise ValueError("UU game ID is required")
+        self._data["uu_game_id"] = value.strip()
+
+    @property
+    def uu_zone_id(self) -> str:
+        return str(self._data["uu_zone_id"])
+
+    @uu_zone_id.setter
+    def uu_zone_id(self, value: str):
+        self._data["uu_zone_id"] = value.strip()
+
+    @property
+    def uu_server_id(self) -> str:
+        return str(self._data["uu_server_id"])
+
+    @uu_server_id.setter
+    def uu_server_id(self, value: str):
+        self._data["uu_server_id"] = value.strip()
+
+    @property
+    def uu_region_name(self) -> str:
+        return str(self._data["uu_region_name"])
+
+    @uu_region_name.setter
+    def uu_region_name(self, value: str):
+        self._data["uu_region_name"] = value.strip()
 
     def get_explicit_path(self) -> str | None:
         """Get wallpaper engine path if it's an explicit path (not 'auto')."""
