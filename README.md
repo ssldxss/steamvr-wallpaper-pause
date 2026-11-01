@@ -11,12 +11,12 @@
 
 [安装程序](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/latest/download/SteamVRWallpaperPause-Setup.exe)
 
-[旧版安装程序(蓝凑云)](https://zako.lanzoul.com/i9SMQ3z0c3xc)
+[安装程序(蓝凑云)](https://zako.lanzoul.com/iZIL74e9746f)
 
 密码:
 
 ```  
-ebt8
+aey9
 ```
 
 ## ZakoZako!

@@ -10,12 +10,12 @@ Automatically stops or pauses Wallpaper Engine when SteamVR is running, and resu
 
 [Installer](https://github.com/ssldxss/steamvr-wallpaper-pause/releases/latest/download/SteamVRWallpaperPause-Setup.exe)
 
-[Older installer (Lanzou Cloud)](https://zako.lanzoul.com/i9SMQ3z0c3xc)
+[Installer (Lanzou Cloud)](https://zako.lanzoul.com/iZIL74e9746f)
 
 Password:
 
 ```
-ebt8
+aey9
 ```
 
 ## ZakoZako!
